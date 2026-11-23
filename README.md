@@ -2,7 +2,7 @@
 
 제1회 소방정책 아이디어 발굴 경진대회(한국소방단체총연합회) 본선 출품 · 팀 브랜드 AI (김영민 · 정병진)
 
-**바로 실행:** https://best5218o-ux.github.io/citizen-responder-119/  ·  **시연 영상:** [demo.mp4](demo.mp4) (48초)
+**바로 실행:** https://best5218o-ux.github.io/citizen-responder-119/  ·  **시연 영상(음성 해설):** [48초 요약](demo.mp4) · [2분 전체](demo_full.mp4)
 
 ## 화면
 1. **119 상황실** — 심정지 의심 신고 → AI 도착지연 예측(6분 내 미도착 확률) → 기준 초과 시 반경 500m 시민응답자 2명 호출(CPR 직행 / AED 확보) → 처리 경과
