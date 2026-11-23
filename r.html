@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>119 시민응답자 앱</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0F2A4A;--teal:#137C7C;--teal-l:#E3F3F2;--red:#D93B2B;--red-l:#FBEAE8;--amber:#E8A33D;--ink:#1B2430;--gray:#5B6573;--line:#D6DCE4;--bg:#F2F4F7}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Noto Sans KR','Malgun Gothic',sans-serif;color:var(--ink);background:var(--bg);font-size:16px}
+.top{background:var(--navy);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+.top b{font-size:16px}.top span{font-size:12px;color:#9FB3CC}
+.wrap{max-width:480px;margin:0 auto;padding:18px;display:flex;flex-direction:column;gap:14px}
+.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 1px 3px rgba(15,42,74,.1)}
+h2{margin:0 0 6px;font-size:20px;color:var(--navy)}
+p{margin:6px 0;line-height:1.55}
+.small{font-size:13px;color:var(--gray);line-height:1.55}
+input[type=text]{width:100%;padding:14px;font:inherit;font-size:17px;border:1.5px solid var(--line);border-radius:12px}
+label.ck{display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:14.5px;line-height:1.45}
+label.ck input{width:22px;height:22px;flex:none;margin-top:1px}
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:16px;font:inherit;font-size:18px;font-weight:900;cursor:pointer;margin-top:10px}
+.btn.red{background:var(--red);color:#fff}.btn.teal{background:var(--teal);color:#fff}.btn.ghost{background:#E6EAF0;color:var(--navy)}.btn.navy{background:var(--navy);color:#fff}
+.btn:disabled{opacity:.4}
+.standby{text-align:center;padding:26px 18px}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--teal);display:inline-block;animation:bl 1.6s infinite;vertical-align:-2px;margin-right:6px}
+@keyframes bl{50%{opacity:.25}}
+.alert{background:var(--red);color:#fff;border-radius:18px;padding:22px;animation:pulse 1.2s infinite;text-align:center}
+.alert .big{font-size:26px;font-weight:900;margin:4px 0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(217,59,43,.55)}50%{box-shadow:0 0 0 16px rgba(217,59,43,0)}}
+.role{background:var(--teal-l);border-radius:16px;padding:16px}
+.role .k{font-size:12.5px;color:var(--gray)}.role .v{font-size:22px;font-weight:900;color:var(--teal);margin-top:2px}
+.code{font-size:44px;font-weight:900;letter-spacing:12px;text-align:center;color:var(--navy);background:var(--bg);border-radius:14px;padding:12px}
+.beat{width:130px;height:130px;border-radius:50%;background:var(--red);margin:10px auto;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:30px}
+.beat.go{animation:beat .545s infinite}
+@keyframes beat{0%{transform:scale(1)}18%{transform:scale(.8)}100%{transform:scale(1)}}
+.done{background:var(--teal-l);border-radius:16px;padding:16px;line-height:1.9;font-size:15px}
+.net{font-size:12px;color:var(--gray);text-align:center}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:var(--red-l);color:var(--red)}
+</style>
+</head>
+<body>
+<div class="top"><div><b>119 시민응답자</b><br><span>시제품 · 실시간 시연</span></div><span id="roomlbl"></span></div>
+<div class="wrap" id="app"></div>
+<div class="net" id="net">연결 중…</div>
+<script>
+const q=new URLSearchParams(location.search);const ROOM=(q.get('room')||'1201').replace(/[^0-9a-zA-Z]/g,'').slice(0,12);
+const TOPIC='kffa-crr119-'+ROOM;document.getElementById('roomlbl').textContent='시연방 '+ROOM;
+const S=k=>{try{return localStorage.getItem(TOPIC+k)}catch(e){return null}};const W=(k,v)=>{try{localStorage.setItem(TOPIC+k,v)}catch(e){}};
+let me={id:S('id')||Math.random().toString(36).slice(2,8),name:S('name')||'',role:+(q.get('role')||S('role')||0)||(Math.random()<.5?1:2)};if(![1,2].includes(me.role))me.role=1;W('id',me.id);W('role',me.role);
+const RN=()=>`시민응답자${me.role}`;const RD=()=>me.role===1?'현장 직행 → 가슴압박(CPR)':'AED 확보 → 환자에게 전달';let cd=null,cdn=0,auto=true;
+let st=me.name?'standby':'reg';let call=null,assign=null,local=false,joinedAt=0;const seen=new Set();
+const app=document.getElementById('app');
+// ---- network
+function pub(o){o.ts=Date.now();return fetch('https://ntfy.sh/'+TOPIC,{method:'POST',body:JSON.stringify(o)}).catch(()=>{})}
+let es;function connect(){es=new EventSource(`https://ntfy.sh/${TOPIC}/sse?since=20s`);es.onopen=()=>net('실시간 연결됨');es.onerror=()=>net('재연결 중…');
+ es.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(x){return}if(d.event!=='message'||seen.has(d.id))return;seen.add(d.id);let m;try{m=JSON.parse(d.message)}catch(x){return}onMsg(m)}}
+function net(t){document.getElementById('net').textContent=t+' · ntfy.sh 공개 실시간 채널 (별칭만 전송, 위치정보 미수집)'}
+// ---- audio
+let AC=null;function unlock(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}}
+function tone(f,d,v=.25){if(!AC)return;const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type='square';g.gain.value=v;o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d)}
+let siren=null;function sirenOn(){sirenOff();let k=0;siren=setInterval(()=>{tone(k++%2?880:660,.22,.18)},280);try{navigator.vibrate&&navigator.vibrate([400,200,400,200,400,200,400])}catch(e){}}
+function sirenOff(){if(siren)clearInterval(siren);siren=null;try{navigator.vibrate&&navigator.vibrate(0)}catch(e){}}
+let metro=null;function metroOn(){metroOff();metro=setInterval(()=>tone(1200,.04,.3),545)}function metroOff(){if(metro)clearInterval(metro);metro=null}
+// ---- messages
+function onMsg(m){
+ if(m.t==='clear'){if(me.name&&st!=='reg'){pub({t:'join',id:me.id,name:me.name,role:me.role});st='standby';call=null;assign=null;sirenOff();metroOff();render()}return}
+ if(m.t==='reset'){if(st!=='reg'){st='standby';call=null;assign=null;sirenOff();metroOff();render()}return}
+ if(m.t==='whois'){if(me.name&&st!=='reg')pub({t:'join',id:me.id,name:me.name,role:me.role});return}
+ if(m.t==='call'&&st==='standby'&&m.targets&&m.targets.includes(me.id)){stopCd();call=m;local=false;st='alert';sirenOn();render();return}
+ if(m.t==='assign'&&call&&m.callId===call.callId&&m.id===me.id){assign=m;st=m.role==='spare'?'spare':'role';render();return}
+ if(m.t==='handoff'&&call&&m.callId===call.callId&&['role','cpr','spare','alert'].includes(st)){sirenOff();metroOff();st='done';render();return}
+ if(m.t==='cancel'&&call&&m.callId===call.callId&&st==='alert'){sirenOff();st='standby';call=null;render()}
+}
+// ---- countdown
+function startCd(){stopCd();if(!auto)return;cdn=8;cd=setInterval(()=>{cdn--;const e=document.getElementById('cdv');if(e)e.textContent=cdn;if(cdn<=0){stopCd();if(st==='standby')soloCall()}},1000)}
+function stopCd(){if(cd)clearInterval(cd);cd=null}
+// ---- local solo demo
+function soloCall(){unlock();local=true;call={callId:'L'+Date.now(),dist:{[me.id]:240},scenario:'충북 농촌 · 심야 (혼자 체험)',prob:95};st='alert';sirenOn();render()}
+// ---- render
+function render(){let h='';
+ if(st==='reg')h=`<div class="card" style="text-align:center"><div class="pill">QR 참여 · 역할 무작위 배정</div><h2 style="margin-top:12px;font-size:26px">${RN()}</h2><div style="font-size:17px;font-weight:900;color:var(--teal)">${RD()}</div>
+ <p class="small" style="margin-top:12px">심정지 신고가 들어오고 구급차가 늦을 것으로 예측되면, 가까운 시민응답자에게 호출이 갑니다. 이 휴대폰은 <b>${RN()}</b>로 참여합니다.</p></div>
+ <div class="card"><label class="ck" style="margin-top:0"><input type="checkbox" id="c2" checked> 시연 참여에 동의합니다 <span class="small">(이름ㆍ실제 위치는 받지 않으며, 화면상 가상 위치를 씁니다)</span></label>
+ <button class="btn red" id="reg">참여 시작 (소리 켜짐)</button></div>`;
+ if(st==='standby')h=`<div class="card standby"><div style="font-size:15px"><span class="dot"></span><b>대기 중</b></div><h2 style="margin-top:10px">${RN()}</h2><div style="font-weight:900;color:var(--teal)">${RD()}</div>
+ <p class="small">호출이 오면 소리와 진동으로 알려 드립니다.</p>${auto?`<div style="font-size:15px;margin-top:10px">⏱ <b id="cdv">${cdn}</b>초 후 가상 신고가 들어옵니다</div>`:`<p class="small"><b>발표자 상황실의 호출을 기다리는 중</b></p>`}</div>
+ <div class="card"><button class="btn ghost" id="now">지금 바로 체험 시작</button><button class="btn ghost" id="wait" style="font-size:14px;padding:10px">${auto?'자동 체험 멈추고 상황실 호출 기다리기':'자동 체험 다시 켜기'}</button><button class="btn ghost" id="swap" style="font-size:14px;padding:10px">역할 바꾸기 (${me.role===1?'시민응답자2 · AED':'시민응답자1 · CPR'})</button></div>`;
+ if(st==='alert'){const d=(call.dist&&call.dist[me.id])||240;h=`<div class="alert"><div style="font-size:15px">🚨 심정지 의심 신고</div><div class="big">내 위치에서 약 ${d}m</div><div style="font-size:14px">구급차 6분 내 미도착 확률 ${call.prob||'–'}% · ${esc(call.scenario||'')}</div></div>
+ <p class="small" style="text-align:center">응답할 수 있으면 수락해 주세요. 위험하거나 어려우면 거절해도 괜찮습니다.</p><button class="btn red" id="acc">수락 — 출동합니다</button><button class="btn ghost" id="dec">이번에는 어렵습니다</button>`}
+ if(st==='waitassign')h=`<div class="card standby"><span class="dot"></span><b>수락 완료 — 역할 배정 중…</b></div>`;
+ if(st==='role'){const a=assign;h=(a.role==='aed'?`<div class="role"><div class="k">당신의 역할</div><div class="v">AED 확보 → 환자에게 전달</div><p class="small" style="margin:8px 0 0">${esc(a.aedName||'마을회관 AED')} (${a.toAed||150}m) → 환자 위치 (${a.toPt||110}m)</p></div>
+ <p class="small" style="margin-bottom:0">잠금 보관함 일회용 해제 번호</p><div class="code">${a.code}</div><p class="small" style="text-align:center;margin-top:0">이번 호출에서 1회만 사용 · 10분 후 만료</p>`:
+ `<div class="role"><div class="k">당신의 역할</div><div class="v">현장 직행 → 가슴압박</div><p class="small" style="margin:8px 0 0">환자 위치까지 약 ${(call.dist&&call.dist[me.id])||240}m · 다른 응답자가 AED를 가져옵니다</p></div>`)+
+ (a.arrived?`<div style="text-align:center;font-weight:900;color:var(--navy);margin-top:4px">가슴압박 — 박자에 맞춰</div><div class="beat go">110</div><p class="small" style="text-align:center">가슴 중앙 · 5cm 깊이 · 분당 100~120회<br>${a.role==='aed'?'AED 전원을 켜고 음성 안내를 따르세요':'AED가 도착하면 패드를 붙이세요'}</p><p class="small" style="text-align:center;background:var(--bg);border-radius:10px;padding:8px">📹 신고자 영상통화 지도와 연결됨 · 구급대가 오고 있습니다</p>`+(local?`<button class="btn navy" id="ho">구급대 도착 — 인계 (체험)</button>`:`<p class="small" style="text-align:center">구급대가 도착하면 상황실이 인계를 알려 드립니다.</p>`)
+ :`<button class="btn teal" id="arr">현장 도착</button>`)}
+ if(st==='spare')h=`<div class="card"><h2>고맙습니다</h2><p>이미 충분한 응답자가 출동했습니다. 대기 상태로 돌아갑니다.</p><button class="btn ghost" id="back">확인</button></div>`;
+ if(st==='declined')h=`<div class="card"><h2>거절되었습니다</h2><p>다음 응답자에게 호출이 넘어갔습니다. 부담 갖지 않으셔도 됩니다.</p><button class="btn ghost" id="back">대기로 돌아가기</button></div>`;
+ if(st==='done')h=`<div class="card"><h2>인계 완료 — 고맙습니다</h2><p>구급대에 환자를 인계했습니다. 안전하게 복귀하세요.</p></div><div class="done">✓ 위치정보 파기 완료<br>✓ 선의의 응급의료 면책 안내 (「응급의료법」 제5조의2)<br>✓ 응답자 상해보험 적용 대상<br>✓ 내일 안부 연락이 예약되었습니다</div><button class="btn red" id="again">다시 체험하기</button><button class="btn ghost" id="psy">지금 상담 연결하기</button><button class="btn ghost" id="back">상황실 호출 기다리기</button>`;
+ app.innerHTML=h;
+ const on=(i,f)=>{const e=document.getElementById(i);if(e)e.onclick=f};
+ if(st==='reg'){const c2=document.getElementById('c2'),b=document.getElementById('reg');c2.onchange=()=>b.disabled=!c2.checked;
+  b.onclick=()=>{unlock();tone(880,.12,.2);me.name=RN()+'-'+me.id.slice(0,2).toUpperCase();W('name',me.name);pub({t:'join',id:me.id,name:me.name,role:me.role});st='standby';startCd();render()}}
+ if(st==='standby'){on('now',()=>{stopCd();soloCall()});on('wait',()=>{auto=!auto;auto?startCd():stopCd();render()});on('swap',()=>{me.role=me.role===1?2:1;W('role',me.role);me.name=RN()+'-'+me.id.slice(0,2).toUpperCase();W('name',me.name);pub({t:'join',id:me.id,name:me.name,role:me.role});render()})}
+ on('acc',()=>{unlock();sirenOff();if(local){assign=me.role===2?{role:'aed',code:String(1000+Math.floor(Math.random()*9000)),aedName:'마을회관 AED',toAed:150,toPt:110}:{role:'cpr'};st='role';render();return}
+  pub({t:'accept',callId:call.callId,id:me.id,name:me.name});st='waitassign';render();
+  const cid=call.callId;setTimeout(()=>{if(st==='waitassign'&&call&&call.callId===cid){assign=me.role===2?{role:'aed',code:String(1000+Math.floor(Math.random()*9000)),aedName:'마을회관 AED',toAed:150,toPt:110}:{role:'cpr'};st='role';render()}},8000)});
+ on('dec',()=>{sirenOff();if(!local)pub({t:'decline',callId:call.callId,id:me.id,name:me.name});st='declined';render()});
+ on('arr',()=>{assign.arrived=true;if(!local)pub({t:'arrive',callId:call.callId,id:me.id,name:me.name,role:assign.role});metroOn();render()});
+ on('ho',()=>{metroOff();st='done';render()});
+ on('psy',()=>{const e=document.getElementById('psy');e.textContent='상담사 연결 요청됨 (시연)';e.disabled=true});
+ on('back',()=>{metroOff();st=me.name?'standby':'reg';call=null;assign=null;auto=false;render()});
+ on('again',()=>{metroOff();call=null;assign=null;st='standby';auto=true;startCd();render()});
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+connect();if(me.name){pub({t:'join',id:me.id,name:me.name,role:me.role});startCd()}render();
+</script>
+</body>
+</html>

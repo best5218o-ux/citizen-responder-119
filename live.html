@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>119 상황실 — 실시간 시연</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--navy:#0F2A4A;--teal:#137C7C;--teal-l:#E3F3F2;--red:#D93B2B;--red-l:#FBEAE8;--amber:#E8A33D;--ink:#1B2430;--gray:#5B6573;--line:#D6DCE4;--bg:#F2F4F7}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Noto Sans KR','Malgun Gothic',sans-serif;color:var(--ink);background:var(--bg);font-size:15px}
+header{background:var(--navy);color:#fff;padding:12px 22px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+header h1{font-size:19px;margin:0;font-weight:900}header .sub{color:#9FB3CC;font-size:12.5px}
+header a{color:#DCE6F2;font-size:13px;margin-left:auto}
+main{max-width:1360px;margin:0 auto;padding:16px;display:grid;grid-template-columns:290px 1fr 340px;gap:14px}
+.card{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(15,42,74,.08)}
+.card h2{font-size:15.5px;margin:0 0 10px;color:var(--navy)}
+label{display:block;font-size:12px;color:var(--gray);margin:8px 0 3px;font-weight:700}
+select{width:100%;padding:7px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+input[type=range]{width:100%}
+.chk{display:flex;gap:8px;align-items:center;font-size:13.5px;margin-top:8px}
+.btn{border:0;border-radius:10px;padding:11px 14px;font:inherit;font-weight:900;cursor:pointer;width:100%;margin-top:8px}
+.btn.red{background:var(--red);color:#fff}.btn.navy{background:var(--navy);color:#fff}.btn.ghost{background:var(--bg);color:var(--navy)}
+.btn:disabled{opacity:.4;cursor:default}
+.join{display:flex;gap:12px;align-items:center}
+#qr{background:#fff;padding:6px;border-radius:8px;flex:none}
+.big{font-size:40px;font-weight:900;line-height:1}
+.dec{border-radius:10px;padding:12px;font-weight:900;margin-top:10px;font-size:15.5px}
+.dec.call{background:var(--red);color:#fff}.dec.no{background:var(--teal-l);color:var(--teal)}
+.mapwrap{background:#EAF1EC;border-radius:12px;overflow:hidden}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--gray);margin-top:6px;flex-wrap:wrap}
+.legend span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px;background:var(--c)}
+ul.tl{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto}
+ul.tl li{display:flex;gap:10px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}
+ul.tl time{font-weight:900;color:var(--navy);min-width:44px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+td{padding:5px 4px;border-bottom:1px solid var(--line)}
+.st{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:10px}
+.note{font-size:11.5px;color:var(--gray);line-height:1.5;margin-top:8px}
+@keyframes pul{50%{opacity:.35}}
+.blink{animation:pul 1s infinite}
+@media(max-width:1100px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+ <div><h1>119 상황실 — 실시간 시연</h1><div class="sub">구급차보다 먼저 닿는 손 · 「119 시민응답자」 호출체계 시제품 · 팀 브랜드 AI</div></div>
+ <a href="index.html">단일 화면 시제품 ↗</a>
+</header>
+<main>
+ <div>
+  <div class="card">
+   <h2>① 응답자 등록 (심사위원 휴대폰)</h2>
+   <div class="join"><div id="qr"></div><div><div style="font-size:12px;color:var(--gray)">시연방</div><div class="big" id="room"></div><div style="font-size:12px;color:var(--gray);margin-top:6px">등록 응답자</div><div class="big" id="cnt" style="color:var(--teal)">0</div></div></div>
+   <div class="note" id="jurl"></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+   <h2>② 신고 접수</h2>
+   <label>시나리오</label><select id="pre"></select>
+   <label>시도</label><select id="sido"></select>
+   <div style="display:flex;gap:8px"><div style="flex:1"><label>지역</label><select id="ur"><option>도시</option><option>농촌</option></select></div><div style="flex:1.3"><label>시간대</label><select id="tb"><option>심야(0-5시)</option><option>오전(6-11시)</option><option>오후(12-17시)</option><option>저녁(18-23시)</option></select></div></div>
+   <label>가용 구급차 ~ 현장: <b id="kmv"></b></label><input type="range" id="km" min="0.5" max="25" step="0.5">
+   <div class="chk"><input type="checkbox" id="busy"> 관할 구급대 타 현장 출동 중</div>
+   <div class="chk"><input type="checkbox" id="high"> 고층ㆍ대단지 (접촉 지연)</div>
+   <button class="btn red" id="go">AI 판정 → 호출</button>
+   <button class="btn navy" id="ho" disabled>구급대 도착 · 인계</button>
+   <div style="display:flex;gap:8px"><button class="btn ghost" id="rs">새 호출 준비</button><button class="btn ghost" id="clr">참가자 새로 받기</button></div>
+  </div>
+ </div>
+ <div class="card">
+  <h2>③ 현장 반경 500m — 실시간 응답자 위치 <span style="font-size:12px;color:var(--gray);font-weight:500">(시연용 가상 배치)</span></h2>
+  <div class="mapwrap"><svg id="map" viewBox="0 0 640 450" width="100%"></svg></div>
+  <div class="legend"><span style="--c:#D93B2B">환자</span><span style="--c:#fff">시민응답자1 = CPR · 시민응답자2 = AED</span><span style="--c:#137C7C">대기</span><span style="--c:#E8A33D">호출 중</span><span style="--c:#0F2A4A">출동(수락)</span><span style="--c:#B6BEC9">거절</span><span style="--c:#7A5413">AED 거점</span></div>
+ </div>
+ <div>
+  <div class="card">
+   <h2>④ AI 도착지연 예측</h2>
+   <div style="display:flex;align-items:center;gap:12px"><div class="big" id="pn">–</div><div style="font-size:12.5px;color:var(--gray)">6분 내 미도착 확률<br>검증 AUC <b id="auc"></b> · 학습 12,336건</div></div>
+   <div id="dec" class="dec no" style="display:none"></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h2>⑤ 실시간 처리 경과</h2><ul class="tl" id="tl"><li><time>–</time><span>신고 대기</span></li></ul></div>
+  <div class="card" style="margin-top:14px"><h2>⑥ 응답자 현황</h2><table id="rt"></table><div class="note">별칭만 수신합니다. 실제 위치정보는 받지 않습니다. 메시지는 ntfy.sh 공개 실시간 채널로 전달됩니다.</div></div>
+ </div>
+</main>
+<script>
+const MODEL={"intercept": -2.301663949816471, "coef": {"sido_강원특별자치도": -0.25763347939086323, "sido_경기도": 0.06646114310365568, "sido_경상남도": -0.975020380187667, "sido_경상북도": 0.1724990382690097, "sido_광주광역시": 0.14999330218549173, "sido_대구광역시": -0.5328408838955321, "sido_대전광역시": 0.23401816894260744, "sido_미상": 0.026233837456442526, "sido_부산광역시": -0.20515211441984277, "sido_서울특별시": 0.7507486296065039, "sido_세종특별자치시": -0.07216964101179049, "sido_울산광역시": -0.18589739929869467, "sido_인천광역시": 0.7025977322845021, "sido_전라남도": -0.7470809551200124, "sido_전북특별자치도": 0.04339748532891547, "sido_제주특별자치도": -0.9147774030950113, "sido_충청남도": -0.9303651515781732, "sido_충청북도": 0.47334895908691077, "ur_농촌": -1.2664357761232625, "ur_도시": -0.9316387250221394, "ur_미상": -0.0035646105881328616, "tb_심야(0-5시)": -0.6560379745916108, "tb_오전(6-11시)": -0.37638025848617146, "tb_오후(12-17시)": -0.49501770410105594, "tb_저녁(18-23시)": -0.6742031745547078, "km": -0.14442940676248667, "logkm": 3.432435757112153}, "auc": 0.8043911280034488, "sidos": ["강원특별자치도", "경기도", "경상남도", "경상북도", "광주광역시", "대구광역시", "대전광역시", "미상", "부산광역시", "서울특별시", "세종특별자치시", "울산광역시", "인천광역시", "전라남도", "전북특별자치도", "제주특별자치도", "충청남도", "충청북도"], "n": 12336};
+const $=s=>document.querySelector(s);
+const q=new URLSearchParams(location.search);const ROOM=(q.get('room')||'1201').replace(/[^0-9a-zA-Z]/g,'').slice(0,12);const TOPIC='kffa-crr119-'+ROOM;
+$('#room').textContent=ROOM;$('#auc').textContent=MODEL.auc.toFixed(2);
+const JOIN=new URL('r.html?room='+ROOM,location.href).href;$('#jurl').textContent=JOIN;
+try{new QRCode($('#qr'),{text:JOIN,width:130,height:130,colorDark:'#0F2A4A'})}catch(e){$('#qr').textContent='QR'}
+// model
+function predict(s,ur,tb,km){let z=MODEL.intercept;const c=MODEL.coef;z+=(c['sido_'+s]||0)+(c['ur_'+ur]||0)+(c['tb_'+tb]||0)+c.km*km+c.logkm*Math.log1p(km);return 1/(1+Math.exp(-z))}
+MODEL.sidos.filter(s=>s!=='미상').forEach(s=>{const o=document.createElement('option');o.textContent=s;$('#sido').appendChild(o)});
+const PRE=[{t:'A. 충북 농촌 · 심야 (관할 출동 중)',s:'충청북도',ur:'농촌',tb:'심야(0-5시)',km:9.5,busy:true,high:false},{t:'B. 인천 도시 · 저녁 (고층 22층)',s:'인천광역시',ur:'도시',tb:'저녁(18-23시)',km:3,busy:false,high:true},{t:'C. 경남 도시 · 오후 (구급차 1.5km)',s:'경상남도',ur:'도시',tb:'오후(12-17시)',km:1.5,busy:false,high:false}];
+PRE.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent=p.t;$('#pre').appendChild(o)});
+function setPre(i){const p=PRE[i];$('#sido').value=p.s;$('#ur').value=p.ur;$('#tb').value=p.tb;$('#km').value=p.km;$('#busy').checked=p.busy;$('#high').checked=p.high;pv()}
+$('#pre').onchange=e=>setPre(+e.target.value);['#sido','#ur','#tb','#busy','#high'].forEach(i=>$(i).onchange=pv);$('#km').oninput=pv;
+function pv(){$('#kmv').textContent=$('#km').value+' km';const p=predict($('#sido').value,$('#ur').value,$('#tb').value,+$('#km').value);$('#pn').textContent=Math.round(p*100)+'%';$('#pn').style.color=p>=.5?'var(--red)':'var(--teal)';return p}
+setPre(0);
+// network
+const seen=new Set();function pub(o){o.ts=Date.now();return fetch('https://ntfy.sh/'+TOPIC,{method:'POST',body:JSON.stringify(o)}).catch(()=>{})}
+const es=new EventSource(`https://ntfy.sh/${TOPIC}/sse?since=30m`);
+es.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(x){return}if(d.event!=='message'||seen.has(d.id))return;seen.add(d.id);let m;try{m=JSON.parse(d.message)}catch(x){return}onMsg(m)};
+es.onopen=()=>{setTimeout(()=>pub({t:'whois'}),400)};
+// state
+const R=new Map();let cur=null;let t0=0;let cleared=0;
+const H={x:320,y:230};const AEDS=[{x:405,y:262,n:'마을회관 AED'},{x:175,y:130,n:'게이트볼장 AED'},{x:470,y:120,n:'경로당 AED'}];
+function hash(s){let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function place(id){const h=hash(id);const a=(h%360)*Math.PI/180;const r=70+((h>>9)%120);return{x:H.x+Math.cos(a)*r*1.25,y:H.y+Math.sin(a)*r*.95}}
+const M=(a,b)=>Math.round(Math.hypot(a.x-b.x,a.y-b.y)*500/200/10)*10;
+function onMsg(m){
+ if(m.ts&&m.ts<cleared)return;
+ if(m.t==='join'){if(!R.has(m.id))R.set(m.id,{id:m.id,name:m.name,role:m.role||1,...place(m.id),s:'대기'});else{const r=R.get(m.id);r.name=m.name;r.role=m.role||r.role}draw();return}
+ if(m.t==='leave'){R.delete(m.id);draw();return}
+ if(!cur||m.callId!==cur.callId)return;
+ const r=R.get(m.id);
+ if(m.t==='accept'&&r){if(r.s!=='호출 중')return;
+  if(r.role!==2){cur.cpr=(cur.cpr||0)+1;r.s='출동(CPR)';log(`${r.name} 수락 → 현장 직행ㆍ가슴압박 배정`);pub({t:'assign',callId:cur.callId,id:m.id,role:'cpr'})}
+  else{cur.aed=(cur.aed||0)+1;r.s='출동(AED)';const a=AEDS.map(a=>({a,d:M(r,a)+M(a,H)})).sort((x,y)=>x.d-y.d)[0].a;r.aedPt=a;const code=String(1000+Math.floor(Math.random()*9000));
+   log(`${r.name} 수락 → ${a.n} 확보 배정 · 해제번호 발송`);pub({t:'assign',callId:cur.callId,id:m.id,role:'aed',code,aedName:a.n,toAed:M(r,a),toPt:M(a,H)})}
+  draw();return}
+ if(m.t==='decline'&&r){r.s='거절';log(`${r.name} 거절 → 다음 응답자 호출`);draw();if(!(cur.cpr&&cur.aed))callMore(1);return}
+ if(m.t==='arrive'&&r){r.s=r.s.replace('출동','도착');log(`${r.name} 현장 도착 · ${m.role==='aed'?'AED 패드 부착':'가슴압박 시작'}`);draw();return}
+}
+function log(t){const li=document.createElement('li');const s=Math.round((Date.now()-t0)/1000);li.innerHTML=`<time>${t0?Math.floor(s/60)+':'+String(s%60).padStart(2,'0'):'–'}</time><span>${t}</span>`;$('#tl').appendChild(li);li.scrollIntoView({block:'nearest'})}
+function standby(){return [...R.values()].filter(r=>r.s==='대기').sort((a,b)=>M(a,H)-M(b,H))}
+function callMore(n){const t=standby().slice(0,n);if(!t.length){log('추가 호출 가능한 대기 응답자 없음');return}
+ t.forEach(r=>r.s='호출 중');const dist={};t.forEach(r=>dist[r.id]=M(r,H));
+ pub({t:'call',callId:cur.callId,targets:t.map(r=>r.id),dist,prob:cur.prob,scenario:cur.sc});log(`호출 발송 → ${t.map(r=>r.name+'('+dist[r.id]+'m)').join(', ')}`);draw()}
+$('#go').onclick=()=>{const p=pv();const busy=$('#busy').checked,high=$('#high').checked;const call=p>=.5||busy||high;
+ R.forEach(r=>r.s='대기');$('#tl').innerHTML='';t0=Date.now();cur={callId:'C'+Date.now(),prob:Math.round(p*100),sc:PRE[+$('#pre').value].t.replace(/^[A-C]\. /,'')};
+ log('119 신고 접수 · 심정지 의심 판정');log(`AI 예측: 6분 내 미도착 확률 ${cur.prob}%`+(busy?' · 관할 출동 중':'')+(high?' · 고층 접촉 지연':''));
+ const d=$('#dec');d.style.display='block';d.className='dec '+(call?'call':'no');
+ if(!call){d.textContent='구급대 출동만 — 시민응답자 호출하지 않음 (선별 호출)';log('구급대 신속 도착 예상 → 시민응답자 호출 안 함');$('#ho').disabled=false;draw();return}
+ d.textContent='호출 — 구급대 출동 + 인근 시민응답자 호출';
+ if(!standby().length){log('⚠ 등록된 대기 응답자가 없습니다 — 왼쪽 QR로 휴대폰을 등록해 주세요');draw();return}
+ callMore(Math.min(8,standby().length));$('#ho').disabled=false};
+$('#ho').onclick=()=>{if(!cur)return;pub({t:'handoff',callId:cur.callId});log('구급대 현장 도착 · 인계 → 응답자 복귀, 위치정보 파기');R.forEach(r=>{if(r.s==='호출 중'){r.s='대기'}});cur.done=true;$('#ho').disabled=true;draw(true)};
+$('#rs').onclick=()=>{pub({t:'reset'});cur=null;R.forEach(r=>r.s='대기');$('#tl').innerHTML='<li><time>–</time><span>신고 대기</span></li>';$('#dec').style.display='none';$('#ho').disabled=true;draw()};
+$('#clr').onclick=()=>{cleared=Date.now();R.clear();cur=null;pub({t:'clear'});$('#tl').innerHTML='<li><time>–</time><span>참가자 새로 받는 중</span></li>';$('#dec').style.display='none';draw()};
+// map
+const NS='http://www.w3.org/2000/svg';function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||$('#map')).appendChild(e);return e}
+function draw(amb){const m=$('#map');m.innerHTML='';el('rect',{x:0,y:0,width:640,height:450,fill:'#EAF1EC'});
+ el('path',{d:'M0,265 C150,255 250,245 320,230 S520,185 640,175',stroke:'#fff',fill:'none','stroke-width':14});el('path',{d:'M320,230 L330,450',stroke:'#fff',fill:'none','stroke-width':10});el('path',{d:'M160,0 C180,120 200,210 170,450',stroke:'#fff',fill:'none','stroke-width':8});
+ for(let i=0;i<16;i++){const x=30+(i*47)%590,y=30+((i*97)%390);if(Math.hypot(x-H.x,y-H.y)<45)continue;el('rect',{x,y,width:22,height:16,rx:3,fill:'#D3DDD6'})}
+ el('ellipse',{cx:H.x,cy:H.y,rx:250,ry:190,fill:'rgba(19,124,124,.06)',stroke:'#137C7C','stroke-dasharray':'6 6','stroke-width':1.5});
+ el('text',{x:H.x+175,y:H.y-165,fill:'#137C7C','font-size':13,'font-weight':700}).textContent='반경 500m';
+ AEDS.forEach(a=>{el('rect',{x:a.x-10,y:a.y-10,width:20,height:20,rx:5,fill:'#E8A33D'});el('text',{x:a.x,y:a.y+5,'text-anchor':'middle',fill:'#fff','font-size':13,'font-weight':900}).textContent='+';el('text',{x:a.x,y:a.y+25,'text-anchor':'middle',fill:'#7A5413','font-size':10.5,'font-weight':700}).textContent=a.n});
+ const ambp=amb||(cur&&cur.done)?{x:H.x+60,y:H.y-60}:{x:600,y:150};el('rect',{x:ambp.x-30,y:ambp.y-13,width:60,height:26,rx:6,fill:'#0F2A4A'});el('text',{x:ambp.x,y:ambp.y+5,'text-anchor':'middle',fill:'#fff','font-size':12,'font-weight':700}).textContent='구급차';
+ const col={'대기':'#137C7C','호출 중':'#E8A33D','거절':'#B6BEC9','예비':'#5B6573'};let k=0;
+ R.forEach(r=>{let p={x:r.x,y:r.y},c=col[r.s]||'#0F2A4A';if(r.s.startsWith('도착')){const ang=(-150+(k++)*40)*Math.PI/180;p={x:H.x+Math.cos(ang)*48,y:H.y+Math.sin(ang)*42}}
+  if(r.s==='호출 중')el('circle',{cx:p.x,cy:p.y,r:17,fill:'none',stroke:'#E8A33D','stroke-width':3,class:'blink'});
+  if(r.s.startsWith('출동')){el('line',{x1:r.x,y1:r.y,x2:(r.aedPt||H).x,y2:(r.aedPt||H).y,stroke:'#0F2A4A','stroke-dasharray':'4 4','stroke-width':2});if(r.aedPt)el('line',{x1:r.aedPt.x,y1:r.aedPt.y,x2:H.x,y2:H.y,stroke:'#0F2A4A','stroke-dasharray':'4 4','stroke-width':2})}
+  el('circle',{cx:p.x,cy:p.y,r:10,fill:c,stroke:'#fff','stroke-width':2});el('text',{x:p.x,y:p.y-15,'text-anchor':'middle',fill:'#1B2430','font-size':11.5,'font-weight':700}).textContent=r.name});
+ el('circle',{cx:H.x,cy:H.y,r:14,fill:'#D93B2B',stroke:'#fff','stroke-width':3});el('text',{x:H.x,y:H.y+33,'text-anchor':'middle',fill:'#D93B2B','font-size':12.5,'font-weight':900}).textContent='심정지 의심 (신고 위치)';
+ $('#cnt').textContent=R.size;
+ const rt=$('#rt');rt.innerHTML=R.size?'':'<tr><td style="color:var(--gray)">아직 등록된 응답자가 없습니다. QR로 등록해 주세요.</td></tr>';
+ [...R.values()].sort((a,b)=>M(a,H)-M(b,H)).forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=`<td><b>${esc(r.name)}</b></td><td>${M(r,H)}m</td><td style="text-align:right"><span class="st" style="background:${(col[r.s]||'#0F2A4A')}22;color:${col[r.s]||'#0F2A4A'}">${r.s}</span></td>`;rt.appendChild(tr)})}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+draw();
+</script>
+</body>
+</html>
