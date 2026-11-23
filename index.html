@@ -76,7 +76,10 @@ th{color:var(--gray);font-size:12px}
 .kpi b{display:block;font-size:28px;font-weight:900;color:var(--red)}
 .kpi span{font-size:12.5px;color:var(--gray)}
 footer{max-width:1280px;margin:0 auto;padding:0 18px 24px;font-size:12px;color:var(--gray);line-height:1.6}
-@media (max-width:900px){.c3{grid-template-columns:1fr!important}.kpi{grid-template-columns:1fr 1fr}}
+@media (max-width:900px){.c3{grid-template-columns:1fr!important}.kpi{grid-template-columns:1fr 1fr}header{padding:12px 14px}header h1{font-size:16px}nav button{padding:7px 10px;font-size:13px}main{padding:12px}#stbl th:nth-child(2),#stbl td:nth-child(2){display:none}.phone{transform:scale(.92);transform-origin:top center;margin-bottom:-50px}}
+#stbl td:first-child,#stbl th:first-child{white-space:nowrap}
+.qrhint{display:none;background:#FFF6E0;border:1px solid #F0D48A;color:#5C4500;border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px;line-height:1.6}
+.trybtn{display:block;text-align:center;text-decoration:none;background:var(--red);color:#fff;font-weight:900;border-radius:12px;padding:14px;font-size:16px;margin-bottom:14px}
 </style>
 </head>
 <body>
@@ -93,6 +96,7 @@ footer{max-width:1280px;margin:0 auto;padding:0 18px 24px;font-size:12px;color:v
   </nav>
 </header>
 <main>
+<div class="qrhint" id="qrhint"><b>QR로 오셨군요.</b> 위의 <b>① 119 상황실 · ② 시민응답자 앱 · ③ 구급 공백 대시보드</b>를 차례로 눌러 직접 확인해 보세요. ①에서 시나리오를 고르고 「AI 판정 및 호출」을 누르면 작동합니다.</div>
 <!-- ① 상황실 -->
 <section id="console" class="view on">
   <div class="card" style="margin-bottom:16px">
@@ -132,6 +136,7 @@ footer{max-width:1280px;margin:0 auto;padding:0 18px 24px;font-size:12px;color:v
 
 <!-- ② 응답자 앱 -->
 <section id="app" class="view">
+  <a class="trybtn" href="r.html">📱 내 휴대폰으로 실제 앱 체험하기 — 시민응답자1(CPR) 또는 2(AED) 무작위 배정</a>
   <div class="grid c3" style="grid-template-columns:1fr 380px 1fr;align-items:start">
     <div class="card">
       <h2>시민응답자 앱 흐름</h2>
@@ -196,6 +201,7 @@ const $=s=>document.querySelector(s);
 function showView(v){document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.v===v));document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v));}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{showView(b.dataset.v);history.replaceState(null,'','#'+b.dataset.v)});
 {const h=location.hash.slice(1);if(['console','app','dash'].includes(h))showView(h);}
+if(new URLSearchParams(location.search).get('from')==='qr')document.getElementById('qrhint').style.display='block';
 $('#auc').textContent=MODEL.auc.toFixed(2);
 // ---------- model
 function predict(s,ur,tb,km){let z=MODEL.intercept;const c=MODEL.coef;z+=(c['sido_'+s]||0)+(c['ur_'+ur]||0)+(c['tb_'+tb]||0)+c.km*km+c.logkm*Math.log1p(km);return 1/(1+Math.exp(-z));}
@@ -237,7 +243,7 @@ const D=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)*500/190; // px → m
 let timers=[];function resetRun(){timers.forEach(clearTimeout);timers=[];draw();$('#decision').style.display='none';$('#reasons').innerHTML='';$('#tl').innerHTML='';}
 function fmt(s){return Math.floor(s/60)+':'+String(Math.round(s%60)).padStart(2,'0')}
 function move(id,from,to,dur){const g=$('#'+id);if(!g)return;const t0=performance.now();(function f(t){const k=Math.min(1,(t-t0)/dur);g.setAttribute('transform',`translate(${(to.x-from.x)*k},${(to.y-from.y)*k})`);if(k<1)requestAnimationFrame(f)})(t0)}
-$('#run').onclick=()=>{resetRun();const p=preview();const busy=$('#busy').checked,high=$('#high').checked;const call=p>=.5||busy||high;
+$('#run').onclick=()=>{if(innerWidth<900)setTimeout(()=>document.getElementById('map').scrollIntoView({behavior:'smooth',block:'start'}),150);resetRun();const p=preview();const busy=$('#busy').checked,high=$('#high').checked;const call=p>=.5||busy||high;
  const dec=$('#decision');dec.style.display='block';dec.className='decision '+(call?'call':'no');dec.textContent=call?'호출 — 구급대 출동 + 시민응답자 2명 호출':'구급대 출동만 — 시민응답자 호출하지 않음';
  const rs=[];rs.push(`6분 내 미도착 확률 ${Math.round(p*100)}% ${p>=.5?'(기준 50% 이상)':'(기준 50% 미만)'}`);if(busy)rs.push('관할 구급대 타 현장 출동 중');if(high)rs.push('고층ㆍ대단지: 현장 도착 후 환자 접촉 지연');if(!call)rs.push('구급대 신속 도착 예상 — 불필요한 호출로 인한 응답자 피로 방지');$('#reasons').innerHTML=rs.map(r=>'<li>'+r+'</li>').join('');
  const ambSec=60+(+km.value)/40*3600;const tl=$('#tl');const add=(sec,txt)=>{const li=document.createElement('li');li.innerHTML=`<time>${fmt(sec)}</time><span>${txt}</span>`;tl.appendChild(li);return li};

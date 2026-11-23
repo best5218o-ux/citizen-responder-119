@@ -2,7 +2,7 @@
 
 제1회 소방정책 아이디어 발굴 경진대회(한국소방단체총연합회) 본선 출품 · 팀 브랜드 AI (김영민 · 정병진)
 
-**바로 실행:** https://best5218o-ux.github.io/citizen-responder-119/  ·  **시연 영상(음성 해설):** [48초 요약](demo.mp4) · [2분 전체](demo_full.mp4)
+**바로 실행 (휴대폰 QR 주소):** https://best5218o-ux.github.io/citizen-responder-119/?from=qr  ·  **시연 영상(음성 해설):** [48초 요약](demo.mp4) · [2분 전체](demo_full.mp4)
 
 ### 실시간 시연 (여러 휴대폰)
 - **상황실(발표자 노트북):** https://best5218o-ux.github.io/citizen-responder-119/live.html — 시연방 1201
