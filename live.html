@@ -100,7 +100,7 @@ $('#pre').onchange=e=>setPre(+e.target.value);['#sido','#ur','#tb','#busy','#hig
 function pv(){$('#kmv').textContent=$('#km').value+' km';const p=predict($('#sido').value,$('#ur').value,$('#tb').value,+$('#km').value);$('#pn').textContent=Math.round(p*100)+'%';$('#pn').style.color=p>=.5?'var(--red)':'var(--teal)';return p}
 setPre(0);
 // network
-const seen=new Set();function pub(o){o.ts=Date.now();return fetch('https://ntfy.sh/'+TOPIC,{method:'POST',body:JSON.stringify(o)}).catch(()=>{})}
+const seen=new Set();function pub(o,n){n=n||0;if(!o.ts)o.ts=Date.now();const again=()=>{if(n<5)setTimeout(()=>pub(o,n+1),1200*(n+1))};return fetch('https://ntfy.sh/'+TOPIC,{method:'POST',body:JSON.stringify(o)}).then(r=>{if(!r.ok)again()}).catch(again)}
 const es=new EventSource(`https://ntfy.sh/${TOPIC}/sse?since=30m`);
 es.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(x){return}if(d.event!=='message'||seen.has(d.id))return;seen.add(d.id);let m;try{m=JSON.parse(d.message)}catch(x){return}onMsg(m)};
 es.onopen=()=>{setTimeout(()=>pub({t:'whois'}),400)};
