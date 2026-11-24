@@ -74,6 +74,7 @@ function onMsg(m){
  if(m.t==='cancel'&&call&&m.callId===call.callId&&st==='alert'){sirenOff();st='standby';call=null;render()}
 }
 // ---- countdown
+function rejoin(){[3000,10000].forEach(d=>setTimeout(()=>{if(me.name&&st==='standby')pub({t:'join',id:me.id,name:me.name,role:me.role})},d))}
 function startCd(){stopCd();if(!auto)return;cdn=8;cd=setInterval(()=>{cdn--;const e=document.getElementById('cdv');if(e)e.textContent=cdn;if(cdn<=0){stopCd();if(st==='standby')soloCall()}},1000)}
 function stopCd(){if(cd)clearInterval(cd);cd=null}
 // ---- local solo demo
@@ -101,8 +102,8 @@ function render(){let h='';
  app.innerHTML=h;
  const on=(i,f)=>{const e=document.getElementById(i);if(e)e.onclick=f};
  if(st==='reg'){const c2=document.getElementById('c2'),b=document.getElementById('reg');c2.onchange=()=>b.disabled=!c2.checked;
-  b.onclick=()=>{unlock();tone(880,.12,.2);me.name=RN()+'-'+me.id.slice(0,2).toUpperCase();W('name',me.name);pub({t:'join',id:me.id,name:me.name,role:me.role});st='standby';startCd();render()}}
- if(st==='standby'){on('now',()=>{stopCd();soloCall()});on('wait',()=>{auto=!auto;auto?startCd():stopCd();render()});on('swap',()=>{me.role=me.role===1?2:1;W('role',me.role);me.name=RN()+'-'+me.id.slice(0,2).toUpperCase();W('name',me.name);pub({t:'join',id:me.id,name:me.name,role:me.role});render()})}
+  b.onclick=()=>{unlock();tone(880,.12,.2);me.name=RN()+'-'+me.id.slice(0,2).toUpperCase();W('name',me.name);pub({t:'join',id:me.id,name:me.name,role:me.role});rejoin();st='standby';startCd();render()}}
+ if(st==='standby'){on('now',()=>{stopCd();soloCall()});on('wait',()=>{auto=!auto;auto?startCd():stopCd();render()});on('swap',()=>{me.role=me.role===1?2:1;W('role',me.role);me.name=RN()+'-'+me.id.slice(0,2).toUpperCase();W('name',me.name);pub({t:'join',id:me.id,name:me.name,role:me.role});rejoin();render()})}
  on('acc',()=>{unlock();sirenOff();if(local){assign=me.role===2?{role:'aed',code:String(1000+Math.floor(Math.random()*9000)),aedName:'마을회관 AED',toAed:150,toPt:110}:{role:'cpr'};st='role';render();return}
   pub({t:'accept',callId:call.callId,id:me.id,name:me.name});st='waitassign';render();
   const cid=call.callId;setTimeout(()=>{if(st==='waitassign'&&call&&call.callId===cid){assign=me.role===2?{role:'aed',code:String(1000+Math.floor(Math.random()*9000)),aedName:'마을회관 AED',toAed:150,toPt:110}:{role:'cpr'};st='role';render()}},8000)});
@@ -114,7 +115,7 @@ function render(){let h='';
  on('again',()=>{metroOff();call=null;assign=null;st='standby';auto=true;startCd();render()});
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
-connect();if(me.name){pub({t:'join',id:me.id,name:me.name,role:me.role});startCd()}render();
+connect();if(me.name){pub({t:'join',id:me.id,name:me.name,role:me.role});rejoin();startCd()}render();
 </script>
 </body>
 </html>
